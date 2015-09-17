@@ -255,14 +255,18 @@ NOTE: Only the **buffer local** value of VARIABLE will be set."
 
 (defun edconf-get-properties ()
   "Call EditorConfig core and return output"
-  (let ((oldbuf (current-buffer)))
-    (call-process edconf-exec-path nil "ecbuffer" nil (buffer-file-name oldbuf))
-    (set-buffer (get-buffer "ecbuffer"))
-    (let (props-string)
-      (setq props-string (buffer-string))
-      (set-buffer oldbuf)
-      (kill-buffer (get-buffer "ecbuffer"))
-      props-string)))
+  (condition-case err
+    (let ((oldbuf (current-buffer)))
+      (call-process edconf-exec-path nil "ecbuffer" nil (buffer-file-name oldbuf))
+      (set-buffer (get-buffer "ecbuffer"))
+      (let (props-string)
+        (setq props-string (buffer-string))
+        (set-buffer oldbuf)
+        (kill-buffer (get-buffer "ecbuffer"))
+        props-string))
+    (error
+      (message "%s" (error-message-string err))
+      "")))
 
 (defun edconf-parse-properties (props-string)
   "Create properties hash table from string of properties"
